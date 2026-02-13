@@ -1,4 +1,4 @@
-require("dotenv").config();  // Load environment variables from .env file
+require("dotenv").config(); // Load environment variables from .env file
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -12,8 +12,8 @@ const superAdminRoutes = require("./routes/superAdminRoutes"); // ✅ import
 const app = express();
 
 // Middleware setup
-app.use(cors());  // Enable CORS for cross-origin requests
-app.use(express.json());  // Parse incoming JSON requests
+app.use(cors()); // Enable CORS for cross-origin requests
+app.use(express.json()); // Parse incoming JSON requests
 app.use("/uploads", express.static("uploads"));
 
 // Connect to MongoDB
@@ -38,30 +38,28 @@ const authenticateToken = (req, res, next) => {
 
     // If token is valid, set the userId in request object
     req.userId = decoded.userId;
-    next();  // Proceed to the next middleware or route handler
+    next(); // Proceed to the next middleware or route handler
   });
 };
 
 // Register Routes
-app.use("/api/auth", authRoutes);  // Register auth routes
-app.use("/api/workspaces", workspaceRoutes);  // Register workspace routes
+app.use("/api/auth", authRoutes); // Register auth routes
+app.use("/api/workspaces", workspaceRoutes); // Register workspace routes
 app.use("/api/superadmin", superAdminRoutes); // ✅ mount
 
 // Protected route to get the authenticated user's data
-app.get('/api/auth/me', authenticateToken, async (req, res) => {
+app.get("/api/auth/me", authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.userId)
-      .populate({
-        path: "workspaceId",
-        select: "name logo status code role"
-      });
+    const user = await User.findById(req.userId).populate({
+      path: "workspaceId",
+      select: "name logo status code role",
+    });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     res.json({ user });
-
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
@@ -70,9 +68,10 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 // Start server
 if (require.main === module) {
   app.listen(process.env.PORT || 5000, () => {
-    console.log(`Server is running on port ${process.env.PORT || 5000}`);
+    console.log("Server running locally");
   });
 }
 
 module.exports = app;
 
+// module.exports = app;
