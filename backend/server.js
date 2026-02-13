@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
+const path = require("path");
 
 const authRoutes = require("./routes/authRoutes");
 const workspaceRoutes = require("./routes/workspaceRoutes");
@@ -11,15 +12,20 @@ const superAdminRoutes = require("./routes/superAdminRoutes");
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
 
+// ✅ Fix: uploads folder ko Vercel pe safe static serve
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// MongoDB Connect
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to the database"))
   .catch((error) => console.error("Database connection error:", error));
 
+// Token Auth Middleware
 const authenticateToken = (req, res, next) => {
   const token = req.header("Authorization")?.split(" ")[1];
 
@@ -37,10 +43,12 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/workspaces", workspaceRoutes);
 app.use("/api/superadmin", superAdminRoutes);
 
+// Protected Route
 app.get("/api/auth/me", authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId).populate({
@@ -56,8 +64,15 @@ app.get("/api/auth/me", authenticateToken, async (req, res) => {
   }
 });
 
+// ✅ Root test route
 app.get("/", (req, res) => {
   res.send("FactoryHub Backend is live and running!");
 });
 
+// ✅ Extra test route (helps confirm Vercel routing)
+app.get("/api", (req, res) => {
+  res.json({ message: "FactoryHub API is working!" });
+});
+
+// ✅ Vercel needs export
 module.exports = app;
